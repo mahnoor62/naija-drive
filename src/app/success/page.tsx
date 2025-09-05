@@ -23,62 +23,6 @@ function SuccessPageContent() {
   const [copied, setCopied] = useState<boolean>(false);
   const [showToast, setShowToast] = useState<boolean>(false);
 
-// ...
-// useEffect(() => {
-//   const sessionId = searchParams.get('session_id');
-//   if (!sessionId) return;
-
-//   (async () => {
-//     const res = await fetch(`/api/purchase-by-session?session_id=${sessionId}`);
-//     const data = await res.json();
-
-//     if (data.ready) {
-//       setPaymentIntent({
-//         id: sessionId,
-//         status: 'succeeded',
-//         amount: data.amount,
-//         currency: data.currency,
-//         metadata: { carName: data.carName },
-//       });
-//       setRedeemCode(data.redeemCode); // from DB (trusted)
-//     } else {
-//       // optional: retry after a short delay if webhook not finished
-//       setTimeout(() => location.reload(), 1200);
-//     }
-//   })();
-// }, [searchParams]);
-// ...
-
-
-
-  useEffect(() => {
-    const sessionId = searchParams.get('session_id');
-    if (sessionId) {
-      // Fetch session details from Stripe
-      fetch(`/api/get-session?session_id=${sessionId}`)
-        .then(res => res.json())
-        .then(data => {
-          if (data.success) {
-            setPaymentIntent({
-              id: sessionId,
-              status: 'succeeded',
-              amount: data.session.amount_total / 100, // Convert from cents
-              currency: data.session.currency,
-              metadata: {
-                carName: data.session.metadata.carName
-              }
-            });
-            
-            // Generate a redeem code for this purchase
-            const code = Math.floor(100000 + Math.random() * 900000).toString();
-            setRedeemCode(code);
-          }
-        })
-        .catch(error => {
-          console.error('Error fetching session:', error);
-        });
-    }
-  }, [searchParams]);
   useEffect(() => {
     const sessionId = searchParams.get('session_id');
     if (!sessionId) return;
@@ -91,6 +35,7 @@ function SuccessPageContent() {
       });
       const data = await r.json();
       if (data.ok) {
+        console.log('Success page - Payment data:', data);
         setPaymentIntent({
           id: sessionId,
           status: 'succeeded',
@@ -99,6 +44,9 @@ function SuccessPageContent() {
           metadata: { carName: data.carName }
         });
         setRedeemCode(data.redeemCode); // ← DB se, trusted
+        console.log('Success page - Redeem code set:', data.redeemCode);
+      } else {
+        console.error('Failed to fetch payment data:', data);
       }
     })();
   }, [searchParams]);
