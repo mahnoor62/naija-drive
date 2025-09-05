@@ -1,8 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe';
 import { ensureDb } from '@/lib/db-init';
-const User = require('../models/user');
-const Purchase = require('../models/transaction');
+import User from '../models/user.js';
+import Purchase from '../models/transaction.js';
+
+interface PurchaseWithUser {
+  paymentIntent: string;
+  redeemCode: string;
+  user?: {
+    email: string;
+  };
+}
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -27,16 +35,20 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ ready: false });
     }
 
+    // Type assertion to handle Sequelize model types
+    const rowData = row as unknown as PurchaseWithUser;
+
     return NextResponse.json({
       ready: true,
-      email: row.user?.email ?? null,
-      paymentIntent: row.paymentIntent,
-      redeemCode: row.redeemCode,
+      email: rowData.user?.email ?? null,
+      paymentIntent: rowData.paymentIntent,
+      redeemCode: rowData.redeemCode,
       carName: session.metadata?.carName ?? null,
       amount: (session.amount_total ?? 0) / 100,
       currency: session.currency,
     });
-  } catch (e: any) {
-    return NextResponse.json({ error: e.message }, { status: 500 });
+  } catch (e: unknown) {
+    const error = e as Error;
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

@@ -3,8 +3,8 @@ import { stripe } from '@/lib/stripe';
 import { ensureDb } from '@/lib/db-init';
 
 // NOTE: paths match your tree: src/app/api/models/*
-const User = require('../models/user');
-const Purchase = require('../models/transaction');
+import User from '../models/user.js';
+import Purchase from '../models/transaction.js';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -40,11 +40,14 @@ export async function POST(req: NextRequest) {
       defaults: { email },
     });
 
+    // Type assertion for user model
+    const userData = user as unknown as { id: number };
+
     // 4) Transaction idempotent write on paymentIntent
     const [tx, created] = await Purchase.findOrCreate({
       where: { paymentIntent: paymentIntentId },
       defaults: {
-        userId: user.id,
+        userId: userData.id,
         paymentIntent: paymentIntentId,
         sessionId: s.id,
         redeemCode: genRedeemCode(),
@@ -53,28 +56,32 @@ export async function POST(req: NextRequest) {
     });
 
     // (optional) backfill sessionId if old row had null
-    if (!created && !tx.sessionId) {
+    const txData = tx as unknown as { sessionId: string | null };
+    if (!created && !txData.sessionId) {
       await tx.update({ sessionId: s.id });
     }
 
+    const txReturnData = tx as unknown as { paymentIntent: string; redeemCode: string };
+    
     return NextResponse.json({
       ok: true,
       created,
       email,
-      paymentIntent: tx.paymentIntent,
-      redeemCode: tx.redeemCode,
+      paymentIntent: txReturnData.paymentIntent,
+      redeemCode: txReturnData.redeemCode,
       sessionId: s.id,
       carName: s.metadata?.carName ?? null,
       amount: (s.amount_total ?? 0) / 100,
       currency: s.currency,
     });
-  } catch (e: any) {
+  } catch (e: unknown) {
     console.error('Store session error:', e);
-    console.error('Error stack:', e.stack);
+    const error = e as Error;
+    console.error('Error stack:', error.stack);
     return NextResponse.json({ 
-      error: e.message ?? 'error',
-      details: e.toString(),
-      stack: e.stack 
+      error: error.message ?? 'error',
+      details: error.toString(),
+      stack: error.stack 
     }, { status: 500 });
   }
 }

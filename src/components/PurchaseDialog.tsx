@@ -2,14 +2,12 @@
 
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Car, CheckCircle, Copy, Coins, Zap, Shield, Gauge } from 'lucide-react';
+import { Car, CheckCircle, Copy, Coins } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Progress } from '@/components/ui/progress';
-import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Car as CarType } from '@/data/cars';
-import { stripePromise } from '@/lib/stripe-client';
 
 interface PurchaseDialogProps {
   car: CarType;
@@ -34,12 +32,6 @@ export function PurchaseDialog({ car, isOpen, onClose }: PurchaseDialogProps) {
     }
   }, [isOpen, car.id]);
 
-  const generateRedeemCode = () => {
-    // Generate a 6-digit random code
-    const code = Math.floor(100000 + Math.random() * 900000).toString();
-    setRedeemCode(code);
-    setPurchaseStep('success');
-  };
 
   const handlePurchase = async () => {
     setPurchaseStep('processing');
@@ -179,7 +171,7 @@ export function PurchaseDialog({ car, isOpen, onClose }: PurchaseDialogProps) {
               <Alert>
                 <Coins className="h-4 w-4" />
                 <AlertDescription>
-                  After successful payment, you'll receive a 6-digit redeem code to unlock this vehicle in your game.
+                  After successful payment, you&apos;ll receive a 6-digit redeem code to unlock this vehicle in your game.
                 </AlertDescription>
               </Alert>
 

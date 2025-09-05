@@ -1,6 +1,6 @@
-const { DataTypes } = require('sequelize');
-const { sequelize } = require('../../../lib/sequelize');
-const User = require('./user');
+import { DataTypes } from 'sequelize';
+import { sequelize } from '../../../lib/sequelize.js';
+import User from './user.js';
 
 const Purchase = sequelize.define('transaction', {
   paymentIntent: { type: DataTypes.STRING, allowNull: false, unique: true },
@@ -12,4 +12,4 @@ const Purchase = sequelize.define('transaction', {
 User.hasMany(Purchase, { foreignKey: 'userId' });
 Purchase.belongsTo(User, { foreignKey: 'userId' });
 
-module.exports = Purchase;
+export default Purchase;

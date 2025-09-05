@@ -1,19 +1,18 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Car, Zap, Shield, Gauge, Star, ShoppingCart, Coins, Search, Filter } from 'lucide-react';
+import { Car, Coins, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { cars } from '@/data/cars';
 import { PurchaseDialog } from '@/components/PurchaseDialog';
+import Image from 'next/image';
 
-export default function Home() {
+function HomeContent() {
   const searchParams = useSearchParams();
   const [selectedCar, setSelectedCar] = useState(cars[0]);
   const [isPurchaseDialogOpen, setIsPurchaseDialogOpen] = useState(false);
@@ -130,13 +129,18 @@ export default function Home() {
                 >
                   <div className="space-y-3">
                     <div className="bg-gradient-to-br from-primary/20 to-secondary/20 rounded-lg p-3 aspect-square flex items-center justify-center">
-                      <img 
+                      <Image 
                         src={car.image} 
                         alt={car.name}
+                        width={200}
+                        height={200}
                         className="w-full h-full object-contain"
                         onError={(e) => {
                           e.currentTarget.style.display = 'none';
-                          e.currentTarget.nextElementSibling.style.display = 'block';
+                          const nextElement = e.currentTarget.nextElementSibling as HTMLElement;
+                          if (nextElement) {
+                            nextElement.style.display = 'block';
+                          }
                         }}
                       />
                       <div className="text-3xl hidden">🚗</div>
@@ -285,5 +289,20 @@ export default function Home() {
         onClose={() => setIsPurchaseDialogOpen(false)}
       />
     </div>
+  );
+}
+
+export default function Home() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/20 flex items-center justify-center p-4">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    }>
+      <HomeContent />
+    </Suspense>
   );
 }

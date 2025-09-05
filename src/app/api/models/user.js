@@ -1,5 +1,5 @@
-const { DataTypes } = require('sequelize');
-const { sequelize } = require('../../../lib/sequelize');
+import { DataTypes } from 'sequelize';
+import { sequelize } from '../../../lib/sequelize.js';
 
 const User = sequelize.define('user', {
   id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
@@ -7,4 +7,4 @@ const User = sequelize.define('user', {
   redeemCode: { type: DataTypes.STRING, allowNull: true },
 }, { tableName: 'users' });
 
-module.exports = User;
+export default User;

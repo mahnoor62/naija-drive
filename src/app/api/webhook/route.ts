@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe';
 import Stripe from 'stripe';
 import { ensureDb } from '@/lib/db-init';
-const User = require('../models/user');
-const Purchase = require('../models/transaction');
+import User from '../models/user.js';
+import Purchase from '../models/transaction.js';
 
 function genRedeemCode() {
   return Math.floor(100000 + Math.random() * 900000).toString(); // 6-digits
@@ -62,13 +62,16 @@ export async function POST(request: NextRequest) {
         defaults: { email },
       });
 
+      // Type assertion for user model
+      const userData = user as unknown as { id: number };
+
       // Idempotency: if this PI already saved, do nothing
       const existing = await Purchase.findOne({ where: { paymentIntent: paymentIntentId } });
       if (!existing) {
         const redeemCode = genRedeemCode();
 
         await Purchase.create({
-          userId: user.id,
+          userId: userData.id,
           paymentIntent: paymentIntentId,
           redeemCode,
           sessionId,
@@ -78,7 +81,7 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({ received: true });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('Webhook error:', err);
     // Return 200 to prevent Stripe retries if error is non-retryable DB issue
     return NextResponse.json({ received: true });

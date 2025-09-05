@@ -1,6 +1,6 @@
-const { sequelize } = require('../lib/sequelize');
-const User = require('../app/api/models/user');
-const Purchase = require('../app/api/models/transaction');
+import { sequelize } from '../lib/sequelize.js';
+import User from '../app/api/models/user.js';
+import Purchase from '../app/api/models/transaction.js';
 
 async function ensureDb() {
   try {
@@ -21,4 +21,4 @@ async function ensureDb() {
   }
 }
 
-module.exports = { ensureDb };
+export { ensureDb };
